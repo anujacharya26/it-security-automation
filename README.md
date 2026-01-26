@@ -49,6 +49,20 @@ Without audit logs, automation becomes a black box.
 ### How it works
 Audit data is written to a structured JSON file:
 
+### Dry-Run Mode
+
+The tool supports a dry-run mode to safely preview actions before execution.
+
+In dry-run mode:
+- No checklist files are created
+- No audit logs are written
+- The script prints a preview of what would happen
+
+This is useful for:
+- Validating changes
+- Reducing blast radius
+- Supporting change management approvals
+
 ## 🛠️ Tech Stack
 - Python
 - Markdown
