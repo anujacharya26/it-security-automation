@@ -100,7 +100,22 @@ def write_audit_log(entry):
 
 def main():
     print("User Lifecycle Automation Tool (v1)")
-    print("1. Onboarding")
+
+    # 🔹 Dry-run selection (NEW, but does not change existing flow)
+    print("\nSelect execution mode:")
+    print("1. Execute (write files and audit logs)")
+    print("2. Dry-run (preview only, no changes)")
+
+    mode = input("Select mode (1 or 2): ").strip()
+
+    if mode not in ["1", "2"]:
+        print("Invalid mode. Exiting.")
+        return
+
+    dry_run = True if mode == "2" else False
+
+    # 🔹 Existing onboarding/offboarding logic (UNCHANGED)
+    print("\n1. Onboarding")
     print("2. Offboarding")
 
     choice = input("Select an option (1 or 2): ").strip()
@@ -126,13 +141,18 @@ def main():
 
     file_path = os.path.join(output_dir, filename)
 
-    with open(file_path, "w") as file:
-        file.write(content)
+    # 🔹 File write guarded by dry-run
+    if dry_run:
+        print("\n[DRY-RUN] Checklist would be generated at:")
+        print(file_path)
+    else:
+        with open(file_path, "w") as file:
+            file.write(content)
 
-    print("\nChecklist generated successfully:")
-    print(file_path)
+        print("\nChecklist generated successfully:")
+        print(file_path)
 
-    # ✅ Audit log entry (FIXED SCOPE)
+    # 🔹 Audit log entry (UNCHANGED structure)
     audit_entry = {
         "timestamp": timestamp,
         "action": "onboarding" if choice == "1" else "offboarding",
@@ -142,7 +162,12 @@ def main():
         "generated_file": file_path
     }
 
-    write_audit_log(audit_entry)
+    # 🔹 Audit log guarded by dry-run
+    if dry_run:
+        print("\n[DRY-RUN] Audit log entry preview:")
+        print(json.dumps(audit_entry, indent=4))
+    else:
+        write_audit_log(audit_entry)
 
 
 if __name__ == "__main__":
