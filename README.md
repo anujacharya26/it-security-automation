@@ -20,6 +20,35 @@ Automates onboarding and offboarding checklists for IT & security teams.
 - Audit readiness
 - Human-error reduction
 
+## 🧾 Audit Logging & Traceability
+
+Automation without traceability creates risk.
+
+In real-world IT & security operations, every onboarding and offboarding action must be auditable.  
+This project prioritizes **audit readiness** alongside automation.
+
+### What is logged
+Each execution of the script generates an audit entry containing:
+
+- Timestamp of execution
+- Action type (onboarding or offboarding)
+- User email
+- Department and role
+- Generated checklist file reference
+
+### Why audit logging matters
+Audit logs enable teams to:
+
+- Investigate incidents and access issues
+- Prove compliance during audits
+- Identify who performed which action and when
+- Reduce blame-based investigations by providing facts
+
+Without audit logs, automation becomes a black box.
+
+### How it works
+Audit data is written to a structured JSON file:
+
 ## 🛠️ Tech Stack
 - Python
 - Markdown
