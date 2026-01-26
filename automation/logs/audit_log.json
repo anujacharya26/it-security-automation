@@ -1,0 +1,18 @@
+[
+    {
+        "timestamp": "2026-01-26_16-18",
+        "action": "offboarding",
+        "user_email": "amelia.taylor@company.com",
+        "department": "Marketing",
+        "role": "Marketing Specialist",
+        "generated_file": "automation/output/offboarding_amelia_taylor_2026-01-26_16-18.md"
+    },
+    {
+        "timestamp": "2026-01-26_16-23",
+        "action": "onboarding",
+        "user_email": "harry.evans@company.com",
+        "department": "Engineering",
+        "role": "L2 Support Engineer",
+        "generated_file": "automation/output/onboarding_harry_evans_2026-01-26_16-23.md"
+    }
+]

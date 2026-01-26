@@ -3,6 +3,7 @@
 # Focus: Standardization, auditability, and reduced human error
 
 import os
+import json
 from datetime import datetime
 
 
@@ -77,6 +78,26 @@ def offboarding_checklist(user, timestamp):
 """
 
 
+def write_audit_log(entry):
+    log_dir = "automation/logs"
+    os.makedirs(log_dir, exist_ok=True)
+
+    log_file = os.path.join(log_dir, "audit_log.json")
+    logs = []
+
+    if os.path.exists(log_file):
+        with open(log_file, "r") as file:
+            try:
+                logs = json.load(file)
+            except json.JSONDecodeError:
+                logs = []
+
+    logs.append(entry)
+
+    with open(log_file, "w") as file:
+        json.dump(logs, file, indent=4)
+
+
 def main():
     print("User Lifecycle Automation Tool (v1)")
     print("1. Onboarding")
@@ -108,8 +129,20 @@ def main():
     with open(file_path, "w") as file:
         file.write(content)
 
-    print(f"\nChecklist generated successfully:")
+    print("\nChecklist generated successfully:")
     print(file_path)
+
+    # ✅ Audit log entry (FIXED SCOPE)
+    audit_entry = {
+        "timestamp": timestamp,
+        "action": "onboarding" if choice == "1" else "offboarding",
+        "user_email": user["email"],
+        "department": user["department"],
+        "role": user["role"],
+        "generated_file": file_path
+    }
+
+    write_audit_log(audit_entry)
 
 
 if __name__ == "__main__":
