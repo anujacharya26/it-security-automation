@@ -6,6 +6,25 @@ import os
 import json
 from datetime import datetime
 
+# 🔹 Role-based task definitions (RBAC-style)
+ROLE_TASKS = {
+    "engineering": [
+        "- [ ] Grant GitHub organization access",
+        "- [ ] Assign cloud read-only access",
+        "- [ ] Provide CI/CD tool access"
+    ],
+    "hr": [
+        "- [ ] Grant HR system access",
+        "- [ ] Enable payroll platform access",
+        "- [ ] Restrict cloud access"
+    ],
+    "it admin": [
+        "- [ ] Grant IAM console access",
+        "- [ ] Enforce MFA and privileged access",
+        "- [ ] Document elevated permissions"
+    ]
+}
+
 
 def get_user_details():
     print("\nEnter user details:")
@@ -27,6 +46,9 @@ def get_user_details():
 
 
 def onboarding_checklist(user, timestamp):
+    role_tasks = ROLE_TASKS.get(user['role'].lower(), [])
+    role_task_block = "\n".join(role_tasks) if role_tasks else "- [ ] No role-specific tasks defined"
+
     return f"""# 🧑‍💼 User Onboarding Checklist
 
 ## User Information
@@ -49,32 +71,9 @@ def onboarding_checklist(user, timestamp):
 - [ ] Assign company device
 - [ ] Apply security baseline
 - [ ] Notify manager upon completion
-"""
 
-
-def offboarding_checklist(user, timestamp):
-    return f"""# 🚫 User Offboarding Checklist
-
-## User Information
-- **Name:** {user['name']}
-- **Email:** {user['email']}
-- **Department:** {user['department']}
-- **Role:** {user['role']}
-- **Manager:** {user['manager']}
-- **Last Working Day:** {user['date']}
-
-## Execution Metadata
-- **Action Type:** Offboarding
-- **Generated On:** {timestamp}
-
-## 🔐 IT & Security Tasks
-- [ ] Disable identity account
-- [ ] Remove from access groups
-- [ ] Revoke active sessions
-- [ ] Collect company devices
-- [ ] Archive user data if required
-- [ ] Rotate shared credentials (if applicable)
-- [ ] Log offboarding completion
+## 🎯 Role-Specific Tasks
+{role_task_block}
 """
 
 
