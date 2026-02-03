@@ -14,5 +14,13 @@
         "department": "Engineering",
         "role": "L2 Support Engineer",
         "generated_file": "automation/output/onboarding_harry_evans_2026-01-26_16-23.md"
+    },
+    {
+        "timestamp": "2026-01-27_15-00",
+        "action": "onboarding",
+        "user_email": "raiden.esquivel@company.com",
+        "department": "HR",
+        "role": "HR Specialist",
+        "generated_file": "automation/output/onboarding_raiden_esquivel_2026-01-27_15-00.md"
     }
 ]

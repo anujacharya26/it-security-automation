@@ -6,25 +6,6 @@ import os
 import json
 from datetime import datetime
 
-# 🔹 Role-based task definitions (RBAC-style)
-ROLE_TASKS = {
-    "engineering": [
-        "- [ ] Grant GitHub organization access",
-        "- [ ] Assign cloud read-only access",
-        "- [ ] Provide CI/CD tool access"
-    ],
-    "hr": [
-        "- [ ] Grant HR system access",
-        "- [ ] Enable payroll platform access",
-        "- [ ] Restrict cloud access"
-    ],
-    "it admin": [
-        "- [ ] Grant IAM console access",
-        "- [ ] Enforce MFA and privileged access",
-        "- [ ] Document elevated permissions"
-    ]
-}
-
 
 def get_user_details():
     print("\nEnter user details:")
@@ -44,10 +25,41 @@ def get_user_details():
         "date": date
     }
 
+def get_role_tasks(role):
+    role = role.lower()
+
+    ROLE_TASKS = {
+        "designer": [
+            "Provision email and collaboration tools",
+            "Assign company device",
+            "Apply security baseline"
+        ],
+        "engineer": [
+            "Create identity account",
+            "Assign role-based access groups",
+            "Enable MFA",
+            "Provision email and collaboration tools",
+            "Assign company device",
+            "Apply security baseline"
+        ],
+        "hr": [
+            "Create identity account",
+            "Assign HR systems access",
+            "Enable MFA",
+            "Provision email and collaboration tools"
+        ]
+    }
+
+    return ROLE_TASKS.get(role, [])
 
 def onboarding_checklist(user, timestamp):
-    role_tasks = ROLE_TASKS.get(user['role'].lower(), [])
-    role_task_block = "\n".join(role_tasks) if role_tasks else "- [ ] No role-specific tasks defined"
+    tasks = get_role_tasks(user["role"])
+
+    task_section = "\n".join([f"- [ ] {task}" for task in tasks]) if tasks else (
+        "- [ ] Role not recognized\n"
+        "- [ ] Manual access review required\n"
+        "- [ ] Manager and security approval required"
+    )
 
     return f"""# 🧑‍💼 User Onboarding Checklist
 
@@ -64,18 +76,40 @@ def onboarding_checklist(user, timestamp):
 - **Generated On:** {timestamp}
 
 ## ✅ IT & Security Tasks
-- [ ] Create identity account
-- [ ] Assign role-based access groups
-- [ ] Enable MFA
-- [ ] Provision email and collaboration tools
-- [ ] Assign company device
-- [ ] Apply security baseline
-- [ ] Notify manager upon completion
+{task_section}
 
-## 🎯 Role-Specific Tasks
-{role_task_block}
+⚠️ **Security Guardrail**
+Access is provisioned strictly based on role.
+Unrecognized roles require manual approval and audit logging.
 """
 
+def offboarding_checklist(user, timestamp):
+    return f"""# 🚫 User Offboarding Checklist
+
+## User Information
+- **Name:** {user['name']}
+- **Email:** {user['email']}
+- **Department:** {user['department']}
+- **Role:** {user['role']}
+- **Manager:** {user['manager']}
+- **Last Working Day:** {user['date']}
+
+## Execution Metadata
+- **Action Type:** Offboarding
+- **Generated On:** {timestamp}
+
+## 🔐 IT & Security Tasks
+- [ ] Disable identity account
+- [ ] Remove from access groups
+- [ ] Revoke active sessions
+- [ ] Collect company devices
+- [ ] Archive user data if required
+- [ ] Rotate shared credentials (if applicable)
+- [ ] Log offboarding completion
+
+⚠️ **Security Guardrail**
+Offboarding actions must be completed before end of last working day.
+"""
 
 def write_audit_log(entry):
     log_dir = "automation/logs"
@@ -158,6 +192,7 @@ def main():
         "user_email": user["email"],
         "department": user["department"],
         "role": user["role"],
+        "role_policy_applied": "matched" if get_role_tasks(user["role"]) else "manual_review",
         "generated_file": file_path
     }
 
