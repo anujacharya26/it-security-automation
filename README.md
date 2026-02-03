@@ -20,6 +20,16 @@ Automates onboarding and offboarding checklists for IT & security teams.
 - Audit readiness
 - Human-error reduction
 
+🔐 Security Principles Applied
+
+This project is designed using real-world security principles, including:
+
+- Least Privilege: Users receive only role-appropriate access
+- Default Deny: Unknown roles fail safely and require manual review
+- Guardrails over Guessing: Automation never assumes access
+- Audit-First Design: Every action is traceable
+- Blast Radius Reduction: Dry-run mode and RBAC limit the impact of mistakes
+
 ## 🧾 Audit Logging & Traceability
 
 Automation without traceability creates risk.
@@ -63,6 +73,18 @@ This is useful for:
 - Reducing blast radius
 - Supporting change management approvals
 
+🏢 Real-World Usage Context
+
+In real organizations, similar automation is used to:
+
+- Support IT service desks and security teams
+- Enforce role-based access during onboarding
+- Reduce incidents caused by over-permissioned users
+- Improve audit and compliance readiness (SOC 2, ISO 27001)
+- Standardize processes across distributed teams
+
+This project intentionally mirrors enterprise patterns rather than shortcuts.
+
 ## 🛠️ Tech Stack
 - Python
 - Markdown
@@ -75,4 +97,13 @@ This is useful for:
 - Cloud & IAM Practitioners
 - Anyone learning real-world automation
 
-> This repo is built as a learning-by-doing project and will evolve over time.
+🗺️ Roadmap (High-Level)
+
+Planned enhancements include:
+- Role-based offboarding logic
+- Integration with identity providers (future)
+- API-based automation
+- Expanded audit metadata
+- Cloud IAM alignment (AWS, Azure)
+
+The roadmap will evolve based on learning and real-world patterns.
