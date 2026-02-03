@@ -12,7 +12,7 @@ def get_user_details():
     name = input("Employee Name: ").strip()
     email = input("Email Address: ").strip()
     department = input("Department: ").strip()
-    role = input("Role: ").strip()
+    role = input("Role: ").strip().lower()
     manager = input("Manager Name: ").strip()
     date = input("Start Date / Last Working Day: ").strip()
 
