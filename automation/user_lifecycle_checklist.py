@@ -47,7 +47,20 @@ def get_role_tasks(role):
             "Assign HR systems access",
             "Enable MFA",
             "Provision email and collaboration tools"
+        ],
+        "intern": [
+            "Provision email with limited access",
+            "Assign temporary company device",
+            "Apply security baseline",
+            "Set account expiration date"
+        ],
+        "contractor": [
+            "Provision email with restricted access",
+            "Grant project-specific access only",
+            "Enable MFA",
+            "Set automatic account expiry"
         ]
+
     }
 
     return ROLE_TASKS.get(role, [])
@@ -56,9 +69,10 @@ def onboarding_checklist(user, timestamp):
     tasks = get_role_tasks(user["role"])
 
     task_section = "\n".join([f"- [ ] {task}" for task in tasks]) if tasks else (
-        "- [ ] Role not recognized\n"
-        "- [ ] Manual access review required\n"
-        "- [ ] Manager and security approval required"
+    "- [ ] 🚫 No access provisioned by default\n"
+    "- [ ] Manual role verification required\n"
+    "- [ ] Manager + Security approval required\n"
+    "- [ ] Access granted only after approval"
     )
 
     return f"""# 🧑‍💼 User Onboarding Checklist
