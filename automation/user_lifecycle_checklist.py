@@ -5,6 +5,14 @@
 import os
 import json
 from datetime import datetime
+# 🔒 Roles that require mandatory access expiry
+EXPIRY_REQUIRED_ROLES = [
+    "intern",
+    "contractor",
+    "vendor",
+    "partner",
+    "temporary employee"
+]
 
 
 def get_user_details():
@@ -64,8 +72,18 @@ def get_role_tasks(role):
     }
 
     return ROLE_TASKS.get(role, [])
+def governance_summary(user, expiry_date):
+    access_type = "Temporary" if expiry_date else "Permanent"
+    expiry_info = expiry_date if expiry_date else "Not Applicable"
 
-def onboarding_checklist(user, timestamp):
+    return f"""## 🛡️ Governance Summary
+- **Role:** {user['role']}
+- **Access Type:** {access_type}
+- **Access Expiry:** {expiry_info}
+- **Policy Applied:** Least privilege with deny-by-default
+"""
+
+def onboarding_checklist(user, timestamp, expiry_date):
     tasks = get_role_tasks(user["role"])
 
     task_section = "\n".join([f"- [ ] {task}" for task in tasks]) if tasks else (
@@ -89,6 +107,8 @@ def onboarding_checklist(user, timestamp):
 - **Action Type:** Onboarding
 - **Generated On:** {timestamp}
 
+{governance_summary(user, expiry_date)}
+
 ## ✅ IT & Security Tasks
 {task_section}
 
@@ -111,6 +131,7 @@ def offboarding_checklist(user, timestamp):
 ## Execution Metadata
 - **Action Type:** Offboarding
 - **Generated On:** {timestamp}
+
 
 ## 🔐 IT & Security Tasks
 - [ ] Disable identity account
@@ -172,7 +193,36 @@ def main():
         return
 
     user = get_user_details()
+    # ✅ Timestamp must come early
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
+    # 🔹 Optional access expiry (governance data collection)
+    expiry_date = input(
+        "Access Expiry Date (YYYY-MM-DD) [optional, required for temporary roles]: "
+    ).strip()
+
+    expiry_date = expiry_date if expiry_date else None
+        # 🔒 Enforce expiry for temporary roles
+    if choice == "1" and user["role"] in EXPIRY_REQUIRED_ROLES and not expiry_date:
+        print("\n❌ Access expiry is required for this role.")
+        print(f"Role '{user['role']}' requires a time-bound access expiry.")
+
+        audit_entry = {
+            "timestamp": timestamp,
+            "action": "onboarding" if choice == "1" else "offboarding",
+            "user_email": user["email"],
+            "department": user["department"],
+            "role": user["role"],
+            "role_policy_applied": "expiry_required_missing",
+            "generated_file": None
+        }
+
+        if dry_run:
+            print("\n[DRY-RUN] Execution blocked due to missing expiry.")
+            print(json.dumps(audit_entry, indent=4))
+        else:
+            write_audit_log(audit_entry)
+
+        return
 
     output_dir = "automation/output"
     os.makedirs(output_dir, exist_ok=True)
@@ -180,10 +230,10 @@ def main():
     safe_name = user["name"].replace(" ", "_").lower()
 
     if choice == "1":
-        content = onboarding_checklist(user, timestamp)
+        content = onboarding_checklist(user, timestamp, expiry_date)
         filename = f"onboarding_{safe_name}_{timestamp}.md"
     else:
-        content = offboarding_checklist(user, timestamp)
+        content = offboarding_checklist(user, timestamp,)
         filename = f"offboarding_{safe_name}_{timestamp}.md"
 
     file_path = os.path.join(output_dir, filename)
@@ -207,7 +257,9 @@ def main():
         "department": user["department"],
         "role": user["role"],
         "role_policy_applied": "matched" if get_role_tasks(user["role"]) else "manual_review",
-        "generated_file": file_path
+        "generated_file": file_path,
+        "access_expiry": expiry_date if expiry_date else "none"
+
     }
 
     # 🔹 Audit log guarded by dry-run
