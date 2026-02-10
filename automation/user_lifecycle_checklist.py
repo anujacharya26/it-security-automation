@@ -4,7 +4,7 @@
 
 import os
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 # 🔒 Roles that require mandatory access expiry
 EXPIRY_REQUIRED_ROLES = [
     "intern",
@@ -201,10 +201,21 @@ def main():
     ).strip()
 
     expiry_date = expiry_date if expiry_date else None
-        # 🔒 Enforce expiry for temporary roles
+    # 🔒 Enforce expiry for temporary roles
     if choice == "1" and user["role"] in EXPIRY_REQUIRED_ROLES and not expiry_date:
         print("\n❌ Access expiry is required for this role.")
         print(f"Role '{user['role']}' requires a time-bound access expiry.")
+    
+    # 🔍 Access review governance logic
+    if expiry_date:
+        access_review_required = True
+        review_due_by = expiry_date
+    else:
+        access_review_required = True
+        review_due_by = (
+            datetime.strptime(timestamp, "%Y-%m-%d_%H-%M") + timedelta(days=180)
+        ).strftime("%Y-%m-%d")
+    
 
         audit_entry = {
             "timestamp": timestamp,
@@ -251,16 +262,20 @@ def main():
 
     # 🔹 Audit log entry (UNCHANGED structure)
     audit_entry = {
-        "timestamp": timestamp,
-        "action": "onboarding" if choice == "1" else "offboarding",
-        "user_email": user["email"],
-        "department": user["department"],
-        "role": user["role"],
-        "role_policy_applied": "matched" if get_role_tasks(user["role"]) else "manual_review",
-        "generated_file": file_path,
-        "access_expiry": expiry_date if expiry_date else "none"
+    "timestamp": timestamp,
+    "action": "onboarding" if choice == "1" else "offboarding",
+    "user_email": user["email"],
+    "department": user["department"],
+    "role": user["role"],
+    "role_policy_applied": "matched" if get_role_tasks(user["role"]) else "manual_review",
+    "generated_file": file_path,
+    "access_expiry": expiry_date if expiry_date else "none",
 
-    }
+    # 🔐 Governance evidence
+    "access_review_required": access_review_required,
+    "review_due_by": review_due_by
+}
+
 
     # 🔹 Audit log guarded by dry-run
     if dry_run:
