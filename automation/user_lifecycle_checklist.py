@@ -1,11 +1,14 @@
 # user_lifecycle_checklist.py
-# v1 - Automation-assisted user onboarding and offboarding
-# Focus: Standardization, auditability, and reduced human error
+# v2 - Enterprise IAM Lifecycle & Governance Simulator
+# Focus: Identity state, governance, risk awareness, auditability
 
 import os
 import json
+import uuid
 from datetime import datetime, timedelta
-# 🔒 Roles that require mandatory access expiry
+
+
+# 🔒 Roles requiring mandatory expiry
 EXPIRY_REQUIRED_ROLES = [
     "intern",
     "contractor",
@@ -14,6 +17,17 @@ EXPIRY_REQUIRED_ROLES = [
     "temporary employee"
 ]
 
+# 🔥 Privileged roles (risk indicator)
+PRIVILEGED_ROLES = [
+    "it admin",
+    "lead engineer",
+    "cloud admin"
+]
+
+
+# -------------------------
+# USER INPUT
+# -------------------------
 
 def get_user_details():
     print("\nEnter user details:")
@@ -33,9 +47,12 @@ def get_user_details():
         "date": date
     }
 
-def get_role_tasks(role):
-    role = role.lower()
 
+# -------------------------
+# ROLE TASK MAPPING (RBAC)
+# -------------------------
+
+def get_role_tasks(role):
     ROLE_TASKS = {
         "designer": [
             "Provision email and collaboration tools",
@@ -57,102 +74,117 @@ def get_role_tasks(role):
             "Provision email and collaboration tools"
         ],
         "intern": [
-            "Provision email with limited access",
-            "Assign temporary company device",
+            "Provision limited email access",
+            "Assign temporary device",
             "Apply security baseline",
             "Set account expiration date"
         ],
         "contractor": [
-            "Provision email with restricted access",
+            "Provision restricted email access",
             "Grant project-specific access only",
             "Enable MFA",
             "Set automatic account expiry"
         ]
-
     }
 
-    return ROLE_TASKS.get(role, [])
+    return ROLE_TASKS.get(role.lower(), [])
+
+
+# -------------------------
+# GOVERNANCE SUMMARY BLOCK
+# -------------------------
+
 def governance_summary(user, expiry_date):
     access_type = "Temporary" if expiry_date else "Permanent"
     expiry_info = expiry_date if expiry_date else "Not Applicable"
 
     return f"""## 🛡️ Governance Summary
-- **Role:** {user['role']}
-- **Access Type:** {access_type}
-- **Access Expiry:** {expiry_info}
-- **Policy Applied:** Least privilege with deny-by-default
+- Role: {user['role']}
+- Access Type: {access_type}
+- Access Expiry: {expiry_info}
+- Privileged Role: {user['role'] in PRIVILEGED_ROLES}
+- Policy Model: Least privilege with deny-by-default
 """
+
+
+# -------------------------
+# CHECKLIST GENERATORS
+# -------------------------
 
 def onboarding_checklist(user, timestamp, expiry_date):
     tasks = get_role_tasks(user["role"])
 
     task_section = "\n".join([f"- [ ] {task}" for task in tasks]) if tasks else (
-    "- [ ] 🚫 No access provisioned by default\n"
-    "- [ ] Manual role verification required\n"
-    "- [ ] Manager + Security approval required\n"
-    "- [ ] Access granted only after approval"
+        "- [ ] 🚫 No access provisioned by default\n"
+        "- [ ] Manual role verification required\n"
+        "- [ ] Manager + Security approval required\n"
+        "- [ ] Access granted only after approval"
     )
 
-    return f"""# 🧑‍💼 User Onboarding Checklist
+    return f"""# User Onboarding Checklist
 
 ## User Information
-- **Name:** {user['name']}
-- **Email:** {user['email']}
-- **Department:** {user['department']}
-- **Role:** {user['role']}
-- **Manager:** {user['manager']}
-- **Start Date:** {user['date']}
+- Name: {user['name']}
+- Email: {user['email']}
+- Department: {user['department']}
+- Role: {user['role']}
+- Manager: {user['manager']}
+- Start Date: {user['date']}
 
 ## Execution Metadata
-- **Action Type:** Onboarding
-- **Generated On:** {timestamp}
+- Action Type: Onboarding
+- Generated On: {timestamp}
 
 {governance_summary(user, expiry_date)}
 
-## ✅ IT & Security Tasks
+## IT & Security Tasks
 {task_section}
 
-⚠️ **Security Guardrail**
-Access is provisioned strictly based on role.
-Unrecognized roles require manual approval and audit logging.
+Security Guardrail:
+Access is provisioned strictly based on role definition.
 """
 
+
 def offboarding_checklist(user, timestamp):
-    return f"""# 🚫 User Offboarding Checklist
+    return f"""# User Offboarding Checklist
 
 ## User Information
-- **Name:** {user['name']}
-- **Email:** {user['email']}
-- **Department:** {user['department']}
-- **Role:** {user['role']}
-- **Manager:** {user['manager']}
-- **Last Working Day:** {user['date']}
+- Name: {user['name']}
+- Email: {user['email']}
+- Department: {user['department']}
+- Role: {user['role']}
+- Manager: {user['manager']}
+- Last Working Day: {user['date']}
 
 ## Execution Metadata
-- **Action Type:** Offboarding
-- **Generated On:** {timestamp}
+- Action Type: Offboarding
+- Generated On: {timestamp}
 
-
-## 🔐 IT & Security Tasks
+## IT & Security Tasks
 - [ ] Disable identity account
 - [ ] Remove from access groups
 - [ ] Revoke active sessions
 - [ ] Collect company devices
-- [ ] Archive user data if required
-- [ ] Rotate shared credentials (if applicable)
+- [ ] Archive user data
+- [ ] Rotate shared credentials
 - [ ] Log offboarding completion
 
-⚠️ **Security Guardrail**
-Offboarding actions must be completed before end of last working day.
+Security Guardrail:
+All access must be revoked before end of last working day.
 """
+
+
+# -------------------------
+# AUDIT LOGGING
+# -------------------------
 
 def write_audit_log(entry):
     log_dir = "automation/logs"
     os.makedirs(log_dir, exist_ok=True)
 
     log_file = os.path.join(log_dir, "audit_log.json")
-    logs = []
 
+    logs = []
     if os.path.exists(log_file):
         with open(log_file, "r") as file:
             try:
@@ -166,74 +198,138 @@ def write_audit_log(entry):
         json.dump(logs, file, indent=4)
 
 
-def main():
-    print("User Lifecycle Automation Tool (v1)")
+# -------------------------
+# OVERDUE REVIEW DETECTION
+# -------------------------
 
-    # 🔹 Dry-run selection (NEW, but does not change existing flow)
-    print("\nSelect execution mode:")
-    print("1. Execute (write files and audit logs)")
-    print("2. Dry-run (preview only, no changes)")
-
-    mode = input("Select mode (1 or 2): ").strip()
-
-    if mode not in ["1", "2"]:
-        print("Invalid mode. Exiting.")
+def check_overdue_reviews():
+    log_file = "automation/logs/audit_log.json"
+    if not os.path.exists(log_file):
         return
 
-    dry_run = True if mode == "2" else False
+    with open(log_file, "r") as file:
+        try:
+            logs = json.load(file)
+        except json.JSONDecodeError:
+            return
 
-    # 🔹 Existing onboarding/offboarding logic (UNCHANGED)
+    today = datetime.now().date()
+    overdue = []
+
+    for entry in logs:
+        if (
+            entry.get("access_review_required")
+            and entry.get("review_status") == "pending"
+            and entry.get("review_due_by")
+        ):
+            due_date = datetime.strptime(entry["review_due_by"], "%Y-%m-%d").date()
+            if due_date < today:
+                overdue.append(entry)
+
+    if overdue:
+        print("\n⚠️ Governance Alert: Overdue Access Reviews")
+        for item in overdue:
+            print(f"- {item['user_email']} | Review ID: {item['review_id']} | Due: {item['review_due_by']}")
+
+
+# -------------------------
+# MAIN EXECUTION
+# -------------------------
+
+def main():
+
+    print("Enterprise IAM Lifecycle Simulator v2")
+    check_overdue_reviews()
+
+    print("\nSelect execution mode:")
+    print("1. Execute")
+    print("2. Dry-run")
+
+    mode = input("Select mode (1 or 2): ").strip()
+    if mode not in ["1", "2"]:
+        print("Invalid mode.")
+        return
+
+    dry_run = (mode == "2")
+
     print("\n1. Onboarding")
     print("2. Offboarding")
 
     choice = input("Select an option (1 or 2): ").strip()
-
     if choice not in ["1", "2"]:
-        print("Invalid selection. Exiting.")
+        print("Invalid selection.")
         return
 
     user = get_user_details()
-    # ✅ Timestamp must come early
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
-    # 🔹 Optional access expiry (governance data collection)
+
     expiry_date = input(
         "Access Expiry Date (YYYY-MM-DD) [optional, required for temporary roles]: "
     ).strip()
-
     expiry_date = expiry_date if expiry_date else None
-    # 🔒 Enforce expiry for temporary roles
-    if choice == "1" and user["role"] in EXPIRY_REQUIRED_ROLES and not expiry_date:
-        print("\n❌ Access expiry is required for this role.")
-        print(f"Role '{user['role']}' requires a time-bound access expiry.")
-    
-    # 🔍 Access review governance logic
-    if expiry_date:
-        access_review_required = True
-        review_due_by = expiry_date
-    else:
-        access_review_required = True
-        review_due_by = (
-            datetime.strptime(timestamp, "%Y-%m-%d_%H-%M") + timedelta(days=180)
-        ).strftime("%Y-%m-%d")
-    
 
-        audit_entry = {
-            "timestamp": timestamp,
-            "action": "onboarding" if choice == "1" else "offboarding",
-            "user_email": user["email"],
-            "department": user["department"],
-            "role": user["role"],
-            "role_policy_applied": "expiry_required_missing",
-            "generated_file": None
-        }
+    # -------------------------
+    # POLICY CLASSIFICATION
+    # -------------------------
 
-        if dry_run:
-            print("\n[DRY-RUN] Execution blocked due to missing expiry.")
-            print(json.dumps(audit_entry, indent=4))
+    if choice == "1":
+
+        if user["role"] in EXPIRY_REQUIRED_ROLES and not expiry_date:
+            role_policy_applied = "temporary_role_missing_expiry"
+        elif user["role"] in EXPIRY_REQUIRED_ROLES and expiry_date:
+            role_policy_applied = "temporary_role_with_expiry"
+        elif get_role_tasks(user["role"]):
+            role_policy_applied = "standard_role_matched"
         else:
-            write_audit_log(audit_entry)
+            role_policy_applied = "role_not_defined_manual_review"
 
-        return
+        # Enforce expiry requirement
+        if role_policy_applied == "temporary_role_missing_expiry":
+            print("\n❌ Expiry required for temporary role.")
+            audit_entry = {
+                "timestamp": timestamp,
+                "identity_state": "provision_blocked",
+                "action": "onboarding",
+                "user_email": user["email"],
+                "department": user["department"],
+                "role": user["role"],
+                "role_policy_applied": role_policy_applied
+            }
+
+            if dry_run:
+                print(json.dumps(audit_entry, indent=4))
+            else:
+                write_audit_log(audit_entry)
+
+            return
+
+        if role_policy_applied == "role_not_defined_manual_review":
+            identity_state = "active_with_restrictions"
+        else:
+            identity_state = "active"
+
+
+        access_review_required = True
+        review_due_by = expiry_date if expiry_date else (
+            datetime.now() + timedelta(days=180)
+        ).strftime("%Y-%m-%d")
+
+        review_id = f"AR-{datetime.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
+        review_status = "pending"
+        review_generated_at = timestamp
+
+    else:
+        role_policy_applied = "offboarding"
+        identity_state = "revoked"
+        access_review_required = False
+        review_due_by = None
+        review_id = None
+        review_status = None
+        review_generated_at = None
+
+    # -------------------------
+    # FILE GENERATION
+    # -------------------------
 
     output_dir = "automation/output"
     os.makedirs(output_dir, exist_ok=True)
@@ -244,45 +340,43 @@ def main():
         content = onboarding_checklist(user, timestamp, expiry_date)
         filename = f"onboarding_{safe_name}_{timestamp}.md"
     else:
-        content = offboarding_checklist(user, timestamp,)
+        content = offboarding_checklist(user, timestamp)
         filename = f"offboarding_{safe_name}_{timestamp}.md"
 
     file_path = os.path.join(output_dir, filename)
 
-    # 🔹 File write guarded by dry-run
-    if dry_run:
-        print("\n[DRY-RUN] Checklist would be generated at:")
-        print(file_path)
-    else:
+    if not dry_run:
         with open(file_path, "w") as file:
             file.write(content)
 
-        print("\nChecklist generated successfully:")
-        print(file_path)
+    # -------------------------
+    # FINAL AUDIT ENTRY
+    # -------------------------
 
-    # 🔹 Audit log entry (UNCHANGED structure)
     audit_entry = {
-    "timestamp": timestamp,
-    "action": "onboarding" if choice == "1" else "offboarding",
-    "user_email": user["email"],
-    "department": user["department"],
-    "role": user["role"],
-    "role_policy_applied": "matched" if get_role_tasks(user["role"]) else "manual_review",
-    "generated_file": file_path,
-    "access_expiry": expiry_date if expiry_date else "none",
+        "timestamp": timestamp,
+        "identity_state": identity_state,
+        "action": "onboarding" if choice == "1" else "offboarding",
+        "user_email": user["email"],
+        "department": user["department"],
+        "role": user["role"],
+        "privileged_access": user["role"] in PRIVILEGED_ROLES,
+        "role_policy_applied": role_policy_applied,
+        "generated_file": file_path if not dry_run else None,
+        "access_expiry": expiry_date if expiry_date else "none",
+        "access_review_required": access_review_required,
+        "review_due_by": review_due_by,
+        "review_id": review_id,
+        "review_status": review_status,
+        "review_generated_at": review_generated_at
+    }
 
-    # 🔐 Governance evidence
-    "access_review_required": access_review_required,
-    "review_due_by": review_due_by
-}
-
-
-    # 🔹 Audit log guarded by dry-run
     if dry_run:
-        print("\n[DRY-RUN] Audit log entry preview:")
         print(json.dumps(audit_entry, indent=4))
     else:
         write_audit_log(audit_entry)
+        print("\nOperation completed successfully.")
+        print(file_path)
 
 
 if __name__ == "__main__":
