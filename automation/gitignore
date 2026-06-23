@@ -1,8 +1,0 @@
-.DS_Store
-
-automation/output/
-
-automation/logs/*.json
-
-__pycache__/
-*.pyc
