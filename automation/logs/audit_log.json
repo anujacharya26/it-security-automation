@@ -1,26 +1,98 @@
 [
     {
-        "timestamp": "2026-01-26_16-18",
-        "action": "offboarding",
-        "user_email": "amelia.taylor@company.com",
-        "department": "Marketing",
-        "role": "Marketing Specialist",
-        "generated_file": "automation/output/offboarding_amelia_taylor_2026-01-26_16-18.md"
-    },
-    {
-        "timestamp": "2026-01-26_16-23",
+        "timestamp": "2026-06-23_17-21",
+        "identity_state": "active",
         "action": "onboarding",
-        "user_email": "harry.evans@company.com",
+        "user_email": "john.doe@company.com",
         "department": "Engineering",
-        "role": "L2 Support Engineer",
-        "generated_file": "automation/output/onboarding_harry_evans_2026-01-26_16-23.md"
+        "roles": [
+            "engineer"
+        ],
+        "privileged_access": false,
+        "risk_score": 20,
+        "risk_level": "LOW",
+        "role_policy_applied": "standard_role_matched",
+        "generated_file": "automation/output/onboarding_john_doe_2026-06-23_17-21.md",
+        "approval_required": false,
+        "manager_approval_status": "not_required",
+        "security_approval_status": "not_required",
+        "access_expiry": "none",
+        "access_review_required": false,
+        "review_due_by": null,
+        "review_id": null,
+        "review_status": null,
+        "review_generated_at": null
     },
     {
-        "timestamp": "2026-01-27_15-00",
+        "timestamp": "2026-06-23_17-23",
+        "identity_state": "pending_approval",
         "action": "onboarding",
+        "user_email": "maya.patel@contractor.com",
+        "department": "Engineering",
+        "roles": [
+            "contractor"
+        ],
+        "privileged_access": false,
+        "risk_score": 35,
+        "risk_level": "MEDIUM",
+        "role_policy_applied": "temporary_role_with_expiry",
+        "generated_file": "automation/output/onboarding_maya_patel_2026-06-23_17-23.md",
+        "approval_required": true,
+        "manager_approval_status": "pending",
+        "security_approval_status": "pending",
+        "access_expiry": "2026-12-31",
+        "access_review_required": true,
+        "review_due_by": "2026-12-31",
+        "review_id": "AR-20260623-85BFB5",
+        "review_status": "pending",
+        "review_generated_at": "2026-06-23_17-23"
+    },
+    {
+        "timestamp": "2026-06-23_17-24",
+        "identity_state": "pending_approval",
+        "action": "onboarding",
+        "user_email": "alex.rivera@company.com",
+        "department": "Engineering",
+        "roles": [
+            "lead engineer"
+        ],
+        "privileged_access": true,
+        "risk_score": 70,
+        "risk_level": "HIGH",
+        "role_policy_applied": "standard_role_matched",
+        "generated_file": "automation/output/onboarding_alex_rivera_2026-06-23_17-24.md",
+        "approval_required": true,
+        "manager_approval_status": "pending",
+        "security_approval_status": "pending",
+        "access_expiry": "none",
+        "access_review_required": true,
+        "review_due_by": "2026-12-20",
+        "review_id": "AR-20260623-594D66",
+        "review_status": "pending",
+        "review_generated_at": "2026-06-23_17-24"
+    },
+    {
+        "timestamp": "2026-06-23_17-25",
+        "identity_state": "revoked",
+        "action": "offboarding",
         "user_email": "raiden.esquivel@company.com",
-        "department": "HR",
-        "role": "HR Specialist",
-        "generated_file": "automation/output/onboarding_raiden_esquivel_2026-01-27_15-00.md"
+        "department": "Engineering",
+        "roles": [
+            "engineer"
+        ],
+        "privileged_access": false,
+        "risk_score": 20,
+        "risk_level": "LOW",
+        "role_policy_applied": "offboarding",
+        "generated_file": "automation/output/offboarding_raiden_esquivel_2026-06-23_17-25.md",
+        "approval_required": false,
+        "manager_approval_status": null,
+        "security_approval_status": null,
+        "access_expiry": "none",
+        "access_review_required": false,
+        "review_due_by": null,
+        "review_id": null,
+        "review_status": null,
+        "review_generated_at": null
     }
 ]
